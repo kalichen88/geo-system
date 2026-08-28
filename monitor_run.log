@@ -1,0 +1,9 @@
+[采集] 5 个问题 x 3 平台 = 15 次提问...
+Traceback (most recent call last):
+  File "C:\Users\NASA\WorkBuddy\2026-08-28-16-55-31\geo-system\monitor\monitor.py", line 299, in <module>
+    main()
+    ~~~~^^
+  File "C:\Users\NASA\WorkBuddy\2026-08-28-16-55-31\geo-system\monitor\monitor.py", line 277, in main
+    keywords = [brand_cfg["name"]] + brand_cfg.get("aliases", [])
+               ~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+TypeError: can only concatenate list (not "str") to list

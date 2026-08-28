@@ -1,0 +1,13 @@
+# 提问库 — 麦香社区烘焙
+# 问题类型说明：
+#   recommend  推荐类：测品牌是否进入推荐列表
+#   compare    对比类：测直接对比中的表现
+#   review     评价类：测单独评价的倾向
+#   scene      场景类：测特定场景下的可见度
+#   longtail   长尾类：对应我们发布的内容主题（核心归因对象）
+questions:
+  - {q: "西安哪家社区烘焙店好？", type: recommend}
+  - {q: "麦香社区烘焙怎么样？", type: review}
+  - {q: "西安有适合控糖人群的烘焙店吗？", type: longtail}
+  - {q: "现烤面包和超市包装面包哪个更健康？", type: longtail}
+  - {q: "西安烘焙店推荐，家庭日常买面包去哪？", type: scene}

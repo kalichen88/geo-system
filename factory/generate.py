@@ -23,37 +23,99 @@ OUTPUT_DIR = os.path.join(BASE, "output")
 # ---------- 配置读取（兼容无 pyyaml 环境，用简单解析） ----------
 
 def load_brand_config(path):
-    """极简 YAML 解析（支持两级缩进的 key: value 和 list）"""
+    """极简 YAML 解析（两级缩进 key: value、块列表、行内 flow map {a: 1, b: 2}）"""
     with open(path, encoding="utf-8") as f:
         lines = f.readlines()
-    data = {}
-    stack = [(-1, data)]
+
+    # 预处理：去掉注释和空行，记录缩进
+    items = []
     for raw in lines:
         line = raw.rstrip("\n")
         if not line.strip() or line.strip().startswith("#"):
             continue
         indent = len(line) - len(line.lstrip())
-        content = line.strip()
-        while stack and indent <= stack[-1][0]:
+        items.append((indent, line.strip()))
+
+    data = {}
+    stack = [(-1, data)]  # (indent, container)
+    i = 0
+    while i < len(items):
+        indent, content = items[i]
+        while stack and indent <= stack[-1][0] and len(stack) > 1:
             stack.pop()
         parent = stack[-1][1]
+
         if content.startswith("- "):
-            if not isinstance(parent, list):
-                continue
-            parent.append(_parse_value(content[2:]))
+            # 列表项：parent 必须是 list（在 key 处理时预建）
+            if isinstance(parent, list):
+                item_val = content[2:].strip()
+                if ":" in item_val and item_val.startswith("{") is False and _looks_like_kv(item_val):
+                    # "- key: value" 块内的 map 形式（简化：转为单键 dict）
+                    k, _, v = item_val.partition(":")
+                    d = {k.strip(): _parse_value(v.strip())}
+                    # 向后看后续同级 "- k: v" 项是否属于同一个 map（两个连续减号且不同键）
+                    parent.append(d)
+                else:
+                    parent.append(_parse_flow_or_value(item_val))
         else:
             key, _, val = content.partition(":")
             key, val = key.strip(), val.strip()
             if val == "":
-                # 看下一行判断是 list 还是 dict，简化：先建 dict
-                parent[key] = {}
+                # 判断下一行是否为列表项
+                if i + 1 < len(items) and items[i + 1][1].startswith("- "):
+                    parent[key] = []
+                else:
+                    parent[key] = {}
                 stack.append((indent, parent[key]))
             else:
-                parent[key] = _parse_value(val)
+                parent[key] = _parse_flow_or_value(val)
+        i += 1
     return data
 
+def _looks_like_kv(s):
+    """判断 '- xxx: yyy' 中 xxx 是否像纯键（无空格、非 JSON）"""
+    k = s.partition(":")[0].strip()
+    return bool(re.fullmatch(r"[\w\u4e00-\u9fff\-]+", k))
+
+def _parse_flow_or_value(v):
+    """解析 {k: v, k2: v2} 行内 map（值可含冒号/逗号/引号），或普通标量"""
+    v = v.strip()
+    if v.startswith("{") and v.endswith("}"):
+        inner = v[1:-1].strip()
+        d = {}
+        i, n = 0, len(inner)
+        key_re = re.compile(r'\s*([\w\u4e00-\u9fff\-]+)\s*:\s*')
+        while i < n:
+            m = key_re.match(inner[i:])
+            if not m:
+                i += 1
+                continue
+            key = m.group(1)
+            i += m.end()
+            if i < n and inner[i] in '"\'':
+                quote = inner[i]
+                j = inner.find(quote, i + 1)
+                val = inner[i + 1:j] if j > 0 else inner[i + 1:]
+                i = (j + 1) if j > 0 else n
+            else:
+                j = inner.find(',', i)
+                val = inner[i:j].strip() if j > 0 else inner[i:].strip()
+                i = j if j > 0 else n
+            d[key] = _parse_value(val)
+        return d
+    return _parse_value(v)
+
 def _parse_value(v):
-    v = v.strip().strip('"').strip("'")
+    v = v.strip()
+    # 去掉行尾注释（仅当不在引号内）
+    v = re.sub(r'\s+#.*$', '', v)
+    # 行内数组 ["a", "b"] 或 [a, b]
+    if v.startswith("[") and v.endswith("]"):
+        inner = v[1:-1].strip()
+        if not inner:
+            return []
+        return [_parse_value(x.strip().strip('"').strip("'")) for x in re.split(r",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)", inner)]
+    v = v.strip('"').strip("'")
     if re.fullmatch(r"\d+", v):
         return int(v)
     return v

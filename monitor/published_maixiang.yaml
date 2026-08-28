@@ -1,0 +1,8 @@
+# 已发布内容登记表 — 麦香社区烘焙
+# 每发布一条内容，在此登记一行。监测引擎会用这些 URL 比对 AI 回答中的引用。
+published:
+  - {id: P001, platform: zhihu, title: "西安哪家社区烘焙店适合控糖人群？", url: "https://www.zhihu.com/people/maixiang/answers/1001", brand_mentions: 3}
+  - {id: P002, platform: zhihu, title: "西安现烤烘焙店避坑指南", url: "https://www.zhihu.com/people/maixiang/answers/1002", brand_mentions: 2}
+  - {id: P003, platform: baijiahao, title: "西安人买面包去哪？8家社区烘焙店实测", url: "https://baijiahao.baidu.com/s?id=1770000001", brand_mentions: 3}
+  - {id: P004, platform: douyin, title: "控糖也能吃面包？西安这家店做到了", url: "https://www.douyin.com/video/7400000000000000001", brand_mentions: 4}
+  - {id: P005, platform: news, title: "麦香社区烘焙通过SC认证，深耕社区现烤赛道", url: "https://www.example-news.com/maixiang-sc", brand_mentions: 2}
