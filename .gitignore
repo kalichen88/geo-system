@@ -2,3 +2,5 @@
 *.key
 __pycache__/
 output/
+dashboard/site/
+dashboard/history/
