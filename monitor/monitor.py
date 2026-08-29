@@ -23,7 +23,12 @@ import urllib.parse
 import urllib.request
 
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SKILL_SCRIPTS = os.path.join(os.path.expanduser("~"), ".workbuddy", "skills", "geo-analyzer", "scripts")
+# 采集脚本路径：本地 WorkBuddy skill 或服务器上的 skill_scripts 目录（二选一，先找到的生效）
+_CANDIDATES = [
+    os.path.join(os.path.expanduser("~"), ".workbuddy", "skills", "geo-analyzer", "scripts"),
+    os.path.join(BASE, "skill_scripts"),
+]
+SKILL_SCRIPTS = next((p for p in _CANDIDATES if os.path.exists(os.path.join(p, "geo_search.py"))), _CANDIDATES[0])
 sys.path.insert(0, SKILL_SCRIPTS)
 sys.path.insert(0, BASE)
 
